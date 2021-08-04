@@ -57,6 +57,7 @@ public class Knight extends Piece
             {
                 legalMoves.add(targetSquare);
             }
+            // add possible capture move
             else if (pieceOnTargetSquare.isWhite() != isWhite())
             {
                 legalMoves.add(targetSquare);

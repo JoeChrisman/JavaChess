@@ -45,6 +45,32 @@ public class Board {
         // only kings and pawns
     }
 
+    public void movePiece(Square squareMovingFrom, Square squareMovingTo)
+    {
+        Piece pieceMoving = squareMovingFrom.getPiece();
+        Piece pieceCaptured = squareMovingTo.getPiece();
+        assert pieceMoving != null;
+
+        pieceMoving.moveTo(squareMovingTo);
+        setMostRecentPieceMoved(pieceMoving);
+
+        // if a pawn was moved using en passant
+        if (pieceMoving instanceof Pawn && pieceCaptured == null && squareMovingFrom.getCol() != squareMovingTo.getCol())
+        {
+            // find the pawn captured by en passant and remove it
+            int oppositePawnDirection = pieceMoving.isWhite() == isFromWhitesPerspective ? 1 : -1;
+            Square enPassantCaptureSquare = squares[squareMovingTo.getRow() + oppositePawnDirection][squareMovingTo.getCol()];
+            pieceCaptured = enPassantCaptureSquare.getPiece();
+            enPassantCaptureSquare.setPiece(null);
+        }
+
+        squareMovingFrom.setPiece(null);
+        if (pieceCaptured != null)
+        {
+            pieces.remove(pieceCaptured);
+        }
+    }
+
     public void addPiece(Constants.PieceType pieceType, boolean isWhite, int row, int col) {
         Square square = squares[row][col];
         Piece pieceToAdd = null;

@@ -38,7 +38,7 @@ public class Constants
             return getDirectionSubset(false);
         }
 
-        // get an array either cardinal directions or ordinal directions
+        // get an array of either cardinal directions or ordinal directions
         private static Direction[] getDirectionSubset(boolean isCardinal)
         {
             Direction[] subset = new Direction[4];

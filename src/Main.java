@@ -50,7 +50,7 @@ public class Main extends JPanel
     {
 
         private Piece pieceDragging;
-        private Square squareMovedFrom;
+        private Square squareMovingFrom;
 
         public Piece getPieceDragging()
         {
@@ -75,18 +75,18 @@ public class Main extends JPanel
         public void mousePressed(MouseEvent mouseEvent)
         {
             Point mouseLocation = mouseEvent.getPoint();
-            Square squareClicked = getSquareClicked(mouseLocation);
-            if (squareClicked != null)
+            squareMovingFrom = getSquareClicked(mouseLocation);
+
+            if (squareMovingFrom != null)
             {
-                Piece pieceOnSquare = squareClicked.getPiece();
-                if (pieceOnSquare != null)
+                pieceDragging = squareMovingFrom.getPiece();
+                if (pieceDragging != null)
                 {
-                    pieceDragging = pieceOnSquare;
                     pieceDragging.dragTo(getPieceLocationOffset(mouseLocation));
-                    squareClicked.setPiece(null);
-                    squareMovedFrom = squareClicked;
+                    // temporarily remove the piece we are moving from it's square so it disappears while dragging
+                    squareMovingFrom.setPiece(null);
+                    repaint();
                 }
-                repaint();
             }
         }
 
@@ -95,16 +95,15 @@ public class Main extends JPanel
         {
             if (pieceDragging != null)
             {
-                Square targetSquare = getSquareClicked(mouseEvent.getPoint());
-                if (pieceDragging.getLegalMoves(board).contains(targetSquare))
+                Square squareMovingTo = getSquareClicked(mouseEvent.getPoint());
+                // restore piece we are moving back onto to its original square before calling board.movePiece()
+                squareMovingFrom.setPiece(pieceDragging);
+                if (squareMovingTo != null && pieceDragging.getLegalMoves(board).contains(squareMovingTo))
                 {
-                    pieceDragging.moveTo(targetSquare);
-                    board.setMostRecentPieceMoved(pieceDragging);
-                } else
-                {
-                    squareMovedFrom.setPiece(pieceDragging);
-                }
+                    board.movePiece(squareMovingFrom, squareMovingTo);
+                } // else, cancel the move. already handled by piece restoration
                 pieceDragging.resetDrag();
+                squareMovingFrom = null;
                 pieceDragging = null;
                 repaint();
             }
