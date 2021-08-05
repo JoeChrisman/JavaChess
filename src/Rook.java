@@ -1,25 +1,17 @@
-import javax.swing.*;
-import java.awt.*;
+
 import java.util.ArrayList;
 
 public class Rook extends Piece
 {
-    private final ImageIcon rookIcon = new ImageIcon(new ImageIcon("Images/rook_" + (super.isWhite() ? "w" : "b") + ".png").getImage()
-            .getScaledInstance(Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, Image.SCALE_DEFAULT));
 
     public Rook(Square square,  boolean isWhite)
     {
         super(square, isWhite);
+        loadIcon("Rook");
     }
 
     @Override
-    public ImageIcon getImage()
-    {
-        return rookIcon;
-    }
-
-    @Override
-    public ArrayList<Square> getLegalMoves(Board board) {
+    public ArrayList<Square> getPseudoLegalMoves(Board board) {
         int row = getRow();
         int col = getCol();
 

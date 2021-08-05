@@ -1,26 +1,16 @@
-import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 
 public class King extends Piece
 {
 
-    private final ImageIcon kingIcon = new ImageIcon(new ImageIcon("Images/king_" + (super.isWhite() ? "w" : "b") + ".png").getImage()
-            .getScaledInstance(Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, Image.SCALE_DEFAULT));
-
     public King(Square square,  boolean isWhite)
     {
         super(square, isWhite);
+        loadIcon("King");
     }
 
     @Override
-    public ImageIcon getImage()
-    {
-        return kingIcon;
-    }
-
-    @Override
-    public ArrayList<Square> getLegalMoves(Board board)
+    public ArrayList<Square> getPseudoLegalMoves(Board board)
     {
         int row = getRow();
         int col = getCol();

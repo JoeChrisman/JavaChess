@@ -1,3 +1,4 @@
+import java.awt.*;
 
 public class Constants
 {
@@ -6,6 +7,25 @@ public class Constants
     public static final int SQUARES_WIDE = 8;
     public static final int SQUARE_SIZE = WINDOW_SIZE / SQUARES_WIDE;
     public static final int FRAME_INSET = Main.getFrame().getInsets().top;
+
+    public enum ColorPreset
+    {
+        DARK_SQUARE(Color.black),
+        LIGHT_SQUARE(Color.white),
+        HIGHLIGHT_LEGAL_MOVE(Color.yellow);
+
+        private Color color;
+
+        ColorPreset(Color color)
+        {
+            this.color = color;
+        }
+
+        public Color getColor()
+        {
+            return color;
+        }
+    }
 
     public enum PieceType
     {

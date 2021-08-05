@@ -3,15 +3,16 @@ import java.util.ArrayList;
 
 public class Board {
 
-    private ArrayList<Piece> pieces;
+    private Pieces pieces;
     private Square[][] squares;
     private Piece mostRecentPieceMoved;
 
     private boolean isFromWhitesPerspective;
 
     public Board(boolean isFromWhitesPerspective) {
+        this.isFromWhitesPerspective = isFromWhitesPerspective;
         squares = new Square[Constants.SQUARES_WIDE][Constants.SQUARES_WIDE];
-        pieces = new ArrayList<>();
+        pieces = new Pieces();
 
         for (int row = 0; row < squares.length; row++) {
             for (int col = 0; col < squares.length; col++) {
@@ -28,46 +29,46 @@ public class Board {
         for (int row = 0; row < squares.length; row += 7)
         {
             boolean pieceIsWhite = isFromWhitesPerspective == (row == 7);
-            addPiece(Constants.PieceType.ROOK, pieceIsWhite, row, 0);
-            addPiece(Constants.PieceType.ROOK, pieceIsWhite, row, 7);
-            addPiece(Constants.PieceType.BISHOP, pieceIsWhite, row, 2);
-            addPiece(Constants.PieceType.BISHOP, pieceIsWhite, row, 5);
-            addPiece(Constants.PieceType.KNIGHT, pieceIsWhite, row, 1);
-            addPiece(Constants.PieceType.KNIGHT, pieceIsWhite, row, 6);
 
+            addPiece(Constants.PieceType.ROOK, pieceIsWhite, row, 0);
+            addPiece(Constants.PieceType.KNIGHT, pieceIsWhite, row, 1);
+            addPiece(Constants.PieceType.BISHOP, pieceIsWhite, row, 2);
             addPiece(Constants.PieceType.KING, pieceIsWhite, row, isFromWhitesPerspective ? 4 : 3);
             addPiece(Constants.PieceType.QUEEN, pieceIsWhite, row, isFromWhitesPerspective ? 3 : 4);
+            addPiece(Constants.PieceType.BISHOP, pieceIsWhite, row, 5);
+            addPiece(Constants.PieceType.KNIGHT, pieceIsWhite, row, 6);
+            addPiece(Constants.PieceType.ROOK, pieceIsWhite, row, 7);
         }
 
-        this.isFromWhitesPerspective = isFromWhitesPerspective;
-
-        // set up the board for pawn battle
-        // only kings and pawns
     }
 
-    public void movePiece(Square squareMovingFrom, Square squareMovingTo)
+    public void movePiece(Square squareMovingFrom, Square squareMovingTo, boolean isMocking)
     {
         Piece pieceMoving = squareMovingFrom.getPiece();
         Piece pieceCaptured = squareMovingTo.getPiece();
         assert pieceMoving != null;
 
         pieceMoving.moveTo(squareMovingTo);
-        setMostRecentPieceMoved(pieceMoving);
 
-        // if a pawn was moved using en passant
-        if (pieceMoving instanceof Pawn && pieceCaptured == null && squareMovingFrom.getCol() != squareMovingTo.getCol())
+        // if this move was decided by the player and not some fake move we intend to undo
+        if (!isMocking)
         {
-            // find the pawn captured by en passant and remove it
-            int oppositePawnDirection = pieceMoving.isWhite() == isFromWhitesPerspective ? 1 : -1;
-            Square enPassantCaptureSquare = squares[squareMovingTo.getRow() + oppositePawnDirection][squareMovingTo.getCol()];
-            pieceCaptured = enPassantCaptureSquare.getPiece();
-            enPassantCaptureSquare.setPiece(null);
+            setMostRecentPieceMoved(pieceMoving);
+            // if a pawn was moved using en passant
+            if (pieceMoving instanceof Pawn && pieceCaptured == null && squareMovingFrom.getCol() != squareMovingTo.getCol())
+            {
+                // find the pawn captured by en passant and remove it
+                int oppositePawnDirection = pieceMoving.isWhite() == isFromWhitesPerspective ? 1 : -1;
+                Square enPassantCaptureSquare = squares[squareMovingTo.getRow() + oppositePawnDirection][squareMovingTo.getCol()];
+                pieceCaptured = enPassantCaptureSquare.getPiece();
+                enPassantCaptureSquare.removePiece();
+            }
         }
 
-        squareMovingFrom.setPiece(null);
+        squareMovingFrom.removePiece();
         if (pieceCaptured != null)
         {
-            pieces.remove(pieceCaptured);
+            pieces.removePiece(pieceCaptured);
         }
     }
 
@@ -83,11 +84,17 @@ public class Board {
             case QUEEN: pieceToAdd = new Queen(square, isWhite); break;
         }
         assert pieceToAdd != null;
-        pieces.add(pieceToAdd);
+        pieces.addPiece(pieceToAdd);
     }
 
-    public Square[][] getSquares() {
+    public Square[][] getSquares()
+    {
         return squares;
+    }
+
+    public Pieces getPieces()
+    {
+        return pieces;
     }
 
     public boolean isFromWhitesPerspective() {

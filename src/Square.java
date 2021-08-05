@@ -9,6 +9,9 @@ public class Square extends Rectangle
 
     private Piece piece;
 
+    private Constants.ColorPreset highlightColor;
+    private Constants.ColorPreset squareColor;
+
     public Square(int row, int col)
     {
         super(col * Constants.SQUARE_SIZE,
@@ -19,6 +22,7 @@ public class Square extends Rectangle
         this.col = col;
 
         isWhite = row % 2 == col % 2;
+        squareColor = isWhite ? Constants.ColorPreset.LIGHT_SQUARE : Constants.ColorPreset.DARK_SQUARE;
 
     }
 
@@ -37,6 +41,21 @@ public class Square extends Rectangle
         this.piece = piece;
     }
 
+    public void removePiece()
+    {
+        piece = null;
+    }
+
+    public void highlight(Constants.ColorPreset highlightColor)
+    {
+        this.highlightColor = highlightColor;
+    }
+
+    public void removeHighlight()
+    {
+        highlightColor = null;
+    }
+
     public Piece getPiece()
     {
         return piece;
@@ -44,9 +63,15 @@ public class Square extends Rectangle
 
     public void render(Graphics graphics)
     {
-        graphics.setColor(isWhite ? Color.white : Color.black);
-        graphics.fillRect(x, y, width, height);
+        if (highlightColor == null) {
+            graphics.setColor(squareColor.getColor());
+        }
+        else
+        {
+            graphics.setColor(highlightColor.getColor());
+        }
 
+        graphics.fillRect(x, y, width, height);
 
         if (piece != null)
         {

@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 
 public class Main extends JPanel
 {
@@ -12,9 +13,10 @@ public class Main extends JPanel
         new Main();
     }
 
-    private static Board board = new Board(true);
-    private static JFrame frame = new JFrame("Chess");
+    private ChessGame game = new ChessGame(true);
     private MouseInputHandler mouseHandler = new MouseInputHandler();
+    private static JFrame frame = new JFrame("Chess");
+
 
     public Main()
     {
@@ -36,13 +38,35 @@ public class Main extends JPanel
     @Override
     public void paintComponent(Graphics graphics)
     {
-        board.render(graphics);
+        game.render(graphics);
 
         Piece pieceDragging = mouseHandler.getPieceDragging();
         if (pieceDragging != null)
         {
             pieceDragging.render(graphics);
         }
+
+        /*
+        // fun hacked together way to show all your legal moves
+        graphics.setColor(Color.red);
+        Board board = game.getBoard();
+        for (Piece piece : board.getPieces().getPieces(game.isWhitesTurn()))
+        {
+            Square squareForPiece = board.getSquares()[piece.getRow()][piece.getCol()];
+            if (squareForPiece.getPiece() != null)
+            {
+                ArrayList<Square> allLegalMoves = MoveValidator.getLegalMoves(board, squareForPiece);
+                for (Square legalMove : allLegalMoves)
+                {
+                    graphics.drawLine(
+                            (int)squareForPiece.getCenterX(),
+                            (int)squareForPiece.getCenterY(),
+                            (int)legalMove.getCenterX(),
+                            (int)legalMove.getCenterY()
+                    );
+                }
+            }
+        }*/
 
     }
 
@@ -51,6 +75,7 @@ public class Main extends JPanel
 
         private Piece pieceDragging;
         private Square squareMovingFrom;
+        private ArrayList<Square> legalMovesForPieceDragging;
 
         public Piece getPieceDragging()
         {
@@ -82,10 +107,24 @@ public class Main extends JPanel
                 pieceDragging = squareMovingFrom.getPiece();
                 if (pieceDragging != null)
                 {
-                    pieceDragging.dragTo(getPieceLocationOffset(mouseLocation));
-                    // temporarily remove the piece we are moving from it's square so it disappears while dragging
-                    squareMovingFrom.setPiece(null);
-                    repaint();
+                    if (pieceDragging.isWhite() == game.isWhitesTurn())
+                    {
+                        Board board = game.getBoard();
+                        legalMovesForPieceDragging = MoveValidator.getLegalMoves(board, squareMovingFrom);
+                        for (Square legalMove : legalMovesForPieceDragging)
+                        {
+                            legalMove.highlight(Constants.ColorPreset.HIGHLIGHT_LEGAL_MOVE);
+                        }
+                        pieceDragging.dragTo(getPieceLocationOffset(mouseLocation));
+                        // temporarily remove the piece we are moving from it's square so it disappears while dragging
+                        squareMovingFrom.removePiece();
+                        repaint();
+                    }
+                    else
+                    {
+                        pieceDragging = null;
+                    }
+
                 }
             }
         }
@@ -98,10 +137,14 @@ public class Main extends JPanel
                 Square squareMovingTo = getSquareClicked(mouseEvent.getPoint());
                 // restore piece we are moving back onto to its original square before calling board.movePiece()
                 squareMovingFrom.setPiece(pieceDragging);
-                if (squareMovingTo != null && pieceDragging.getLegalMoves(board).contains(squareMovingTo))
+                if (squareMovingTo != null && legalMovesForPieceDragging.contains(squareMovingTo))
                 {
-                    board.movePiece(squareMovingFrom, squareMovingTo);
+                    game.movePiece(squareMovingFrom, squareMovingTo);
                 } // else, cancel the move. already handled by piece restoration
+                for (Square legalMove : legalMovesForPieceDragging)
+                {
+                    legalMove.removeHighlight();
+                }
                 pieceDragging.resetDrag();
                 squareMovingFrom = null;
                 pieceDragging = null;
@@ -121,7 +164,7 @@ public class Main extends JPanel
 
         public Square getSquareClicked(Point mouseLocation)
         {
-            return board.getSquareClicked(getCoordinateAdjustedForFrameInsets(mouseLocation));
+            return game.getBoard().getSquareClicked(getCoordinateAdjustedForFrameInsets(mouseLocation));
         }
 
         @Override

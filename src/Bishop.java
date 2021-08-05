@@ -1,24 +1,17 @@
-import javax.swing.*;
-import java.awt.*;
 import java.util.ArrayList;
 
 public class Bishop extends Piece
 {
 
-    private final ImageIcon bishopIcon = new ImageIcon(new ImageIcon("Images/bishop_" + (super.isWhite() ? "w" : "b") + ".png").getImage()
-            .getScaledInstance(Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, Image.SCALE_DEFAULT));
-
-    public Bishop(Square square, boolean isWhite) {
+    public Bishop(Square square, boolean isWhite)
+    {
         super(square, isWhite);
+        loadIcon("Bishop");
     }
 
     @Override
-    public ImageIcon getImage() {
-        return bishopIcon;
-    }
-
-    @Override
-    public ArrayList<Square> getLegalMoves(Board board) {
+    public ArrayList<Square> getPseudoLegalMoves(Board board)
+    {
         int row = getRow();
         int col = getCol();
 

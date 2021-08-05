@@ -8,6 +8,7 @@ public abstract class Piece
     private int row;
     private int col;
     private boolean isWhite;
+    private ImageIcon pieceIcon;
 
     private int timesMoved;
 
@@ -45,6 +46,10 @@ public abstract class Piece
         return timesMoved;
     }
 
+    public void setTimesMoved(int timesMoved) {
+        this.timesMoved = timesMoved;
+    }
+
     public int getRow()
     {
         return row;
@@ -64,14 +69,20 @@ public abstract class Piece
     {
         if (positionWhileDragging != null)
         {
-            getImage().paintIcon(Main.getFrame(), graphics, positionWhileDragging.x, positionWhileDragging.y);
+            pieceIcon.paintIcon(Main.getFrame(), graphics, positionWhileDragging.x, positionWhileDragging.y);
         }
-        else {
-            getImage().paintIcon(Main.getFrame(), graphics, col * Constants.SQUARE_SIZE, row * Constants.SQUARE_SIZE);
-
+        else
+        {
+            pieceIcon.paintIcon(Main.getFrame(), graphics, col * Constants.SQUARE_SIZE, row * Constants.SQUARE_SIZE);
         }
     }
 
-    public abstract ImageIcon getImage();
-    public abstract ArrayList<Square> getLegalMoves(Board board);
+    public void loadIcon(String pieceName)
+    {
+         pieceIcon = new ImageIcon(new ImageIcon("Images/" + pieceName + "_" + (isWhite() ? "w" : "b") + ".png").getImage()
+                .getScaledInstance(Constants.SQUARE_SIZE, Constants.SQUARE_SIZE, Image.SCALE_DEFAULT));
+    }
+
+    public abstract ArrayList<Square> getPseudoLegalMoves(Board board);
+
 }
