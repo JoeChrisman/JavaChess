@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class Main extends JPanel
@@ -14,9 +12,8 @@ public class Main extends JPanel
     }
 
     private ChessGame game = new ChessGame(true);
-    private MouseInputHandler mouseHandler = new MouseInputHandler();
+    private InputHandler inputHandler = new InputHandler();
     private static JFrame frame = new JFrame("Chess");
-
 
     public Main()
     {
@@ -24,8 +21,9 @@ public class Main extends JPanel
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(Constants.WINDOW_SIZE, Constants.WINDOW_SIZE + Constants.FRAME_INSET);
-        frame.addMouseListener(mouseHandler);
-        frame.addMouseMotionListener(mouseHandler);
+        frame.addKeyListener(inputHandler);
+        frame.addMouseListener(inputHandler);
+        frame.addMouseMotionListener(inputHandler);
         frame.add(this);
 
     }
@@ -40,7 +38,7 @@ public class Main extends JPanel
     {
         game.render(graphics);
 
-        Piece pieceDragging = mouseHandler.getPieceDragging();
+        Piece pieceDragging = inputHandler.getPieceDragging();
         if (pieceDragging != null)
         {
             pieceDragging.render(graphics);
@@ -55,7 +53,7 @@ public class Main extends JPanel
             Square squareForPiece = board.getSquares()[piece.getRow()][piece.getCol()];
             if (squareForPiece.getPiece() != null)
             {
-                ArrayList<Square> allLegalMoves = MoveValidator.getLegalMoves(board, squareForPiece);
+                ArrayList<Square> allLegalMoves = board.getLegalMoves(squareForPiece);
                 for (Square legalMove : allLegalMoves)
                 {
                     graphics.drawLine(
@@ -70,7 +68,7 @@ public class Main extends JPanel
 
     }
 
-    private class MouseInputHandler implements MouseListener, MouseMotionListener
+    private class InputHandler implements MouseListener, MouseMotionListener, KeyListener
     {
 
         private Piece pieceDragging;
@@ -90,6 +88,7 @@ public class Main extends JPanel
         public Point getPieceLocationOffset(Point pieceLocation)
         {
             // offset dragged piece to render from center instead of corner
+            // also offset for JFrame insets
             return getCoordinateAdjustedForFrameInsets(new Point(
                     pieceLocation.x - Constants.SQUARE_SIZE / 2,
                     pieceLocation.y - Constants.SQUARE_SIZE / 2
@@ -110,14 +109,15 @@ public class Main extends JPanel
                     if (pieceDragging.isWhite() == game.isWhitesTurn())
                     {
                         Board board = game.getBoard();
-                        legalMovesForPieceDragging = MoveValidator.getLegalMoves(board, squareMovingFrom);
+                        legalMovesForPieceDragging = board.getLegalMoves(squareMovingFrom);
+
                         for (Square legalMove : legalMovesForPieceDragging)
                         {
                             legalMove.highlight(Constants.ColorPreset.HIGHLIGHT_LEGAL_MOVE);
                         }
                         pieceDragging.dragTo(getPieceLocationOffset(mouseLocation));
                         // temporarily remove the piece we are moving from it's square so it disappears while dragging
-                        squareMovingFrom.removePiece();
+                        squareMovingFrom.setPiece(null);
                         repaint();
                     }
                     else
@@ -137,17 +137,18 @@ public class Main extends JPanel
                 Square squareMovingTo = getSquareClicked(mouseEvent.getPoint());
                 // restore piece we are moving back onto to its original square before calling board.movePiece()
                 squareMovingFrom.setPiece(pieceDragging);
-                if (squareMovingTo != null && legalMovesForPieceDragging.contains(squareMovingTo))
-                {
-                    game.movePiece(squareMovingFrom, squareMovingTo);
-                } // else, cancel the move. already handled by piece restoration
                 for (Square legalMove : legalMovesForPieceDragging)
                 {
                     legalMove.removeHighlight();
                 }
                 pieceDragging.resetDrag();
-                squareMovingFrom = null;
                 pieceDragging = null;
+
+                if (squareMovingTo != null && legalMovesForPieceDragging.contains(squareMovingTo))
+                {
+                    game.movePiece(squareMovingFrom, squareMovingTo);
+                } // else, cancel the move. already handled by piece restoration
+                squareMovingFrom = null;
                 repaint();
             }
         }
@@ -160,6 +161,28 @@ public class Main extends JPanel
                 pieceDragging.dragTo(getPieceLocationOffset(mouseEvent.getPoint()));
                 repaint();
             }
+        }
+
+        @Override
+        public void keyPressed(KeyEvent keyEvent) {
+            int keyCode = keyEvent.getKeyCode();
+            switch(keyCode)
+            {
+                case KeyEvent.VK_LEFT: game.undo(); break;
+                case KeyEvent.VK_RIGHT: game.redo(); break;
+            }
+            if (keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT)
+            {
+                if (pieceDragging != null)
+                {
+                    pieceDragging.resetDrag();
+
+                }
+                squareMovingFrom = null;
+                pieceDragging = null;
+                repaint();
+            }
+
         }
 
         public Square getSquareClicked(Point mouseLocation)
@@ -175,5 +198,9 @@ public class Main extends JPanel
         public void mouseExited(MouseEvent e) {}
         @Override
         public void mouseClicked(MouseEvent e) {}
+        @Override
+        public void keyTyped(KeyEvent e) {}
+        @Override
+        public void keyReleased(KeyEvent e) {}
     }
 }

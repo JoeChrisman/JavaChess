@@ -27,8 +27,8 @@ public class Rook extends Piece
                 {
                     switch(cardinalDirection) {
                         case NORTH: targetSquare = squares[row - distanceFromRook][col]; break;
-                        case SOUTH: targetSquare = squares[row + distanceFromRook][col]; break;
                         case EAST: targetSquare = squares[row][col + distanceFromRook]; break;
+                        case SOUTH: targetSquare = squares[row + distanceFromRook][col]; break;
                         case WEST: targetSquare = squares[row][col - distanceFromRook]; break;
                     }
                 }

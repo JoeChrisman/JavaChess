@@ -24,6 +24,7 @@ public class King extends Piece
         int minColOffset = col > 0 ? -1 : 0;
         int maxColOffset = col < 7 ? 1 : 0;
 
+        // search in a grid around the king
         for (int rowOffset = minRowOffset; rowOffset <= maxRowOffset; rowOffset++)
         {
             for (int colOffset = minColOffset; colOffset <= maxColOffset; colOffset++)
@@ -46,6 +47,45 @@ public class King extends Piece
                 }
             }
         }
+
+        // check for castling moves
+        if (getTimesMoved() == 0)
+        {
+            // left/right does not always correspond to kingside/queenside it could also be queenside/kingside
+            Piece leftRook = squares[row][0].getPiece();
+            Piece rightRook = squares[row][7].getPiece();
+
+            // first make sure rooks are there and have not moved
+            boolean canCastleLeftOfKing = leftRook instanceof Rook && leftRook.getTimesMoved() == 0;
+            boolean canCastleRightOfKing = rightRook instanceof Rook && rightRook.getTimesMoved() == 0;
+
+            // see if we can castle left
+            for (int backRankCol = 1; backRankCol < col && canCastleLeftOfKing; backRankCol++) {
+                // dont castle through pieces
+                if (squares[row][backRankCol].getPiece() != null)
+                {
+                    canCastleLeftOfKing = false;
+                }
+            }
+            // see if we can castle right
+            for (int backRankCol = col + 1; backRankCol < 7 && canCastleRightOfKing; backRankCol++) {
+                // dont castle through pieces
+                if (squares[row][backRankCol].getPiece() != null)
+                {
+                    canCastleRightOfKing = false;
+                }
+            }
+
+            if (canCastleLeftOfKing)
+            {
+                legalMoves.add(squares[row][col - 2]);
+            }
+            if (canCastleRightOfKing)
+            {
+                legalMoves.add(squares[row][col + 2]);
+            }
+        }
+
 
         return legalMoves;
     }

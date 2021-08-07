@@ -1,12 +1,14 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Pieces {
+public class Pieces implements Serializable {
 
     private ArrayList<Piece> blackPieces = new ArrayList<>();
     private ArrayList<Piece> whitePieces = new ArrayList<>();
     private Piece whiteKing;
     private Piece blackKing;
 
+    // still unused...
     public ArrayList<Piece> getPieces()
     {
         ArrayList<Piece> allPieces = new ArrayList<>();

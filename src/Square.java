@@ -41,11 +41,6 @@ public class Square extends Rectangle
         this.piece = piece;
     }
 
-    public void removePiece()
-    {
-        piece = null;
-    }
-
     public void highlight(Constants.ColorPreset highlightColor)
     {
         this.highlightColor = highlightColor;
